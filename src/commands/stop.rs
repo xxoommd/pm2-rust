@@ -12,11 +12,16 @@ pub fn stop_process(target: &str, show_list: bool) {
             if let Ok(pmr_id) = target.parse::<u32>() {
                 if let Some(process) = processes.iter().find(|p| p.pmr_id == pmr_id) {
                     if process.pid > 0 {
-                        // 在Windows上使用taskkill命令终止进程
-                        let output = Command::new("taskkill")
-                            .args(&["/PID", &process.pid.to_string(), "/F"])
-                            .output()
-                            .expect("无法执行taskkill命令");
+                        // 根据操作系统使用不同的命令终止进程
+                        let output = if cfg!(target_os = "windows") {
+                            Command::new("taskkill")
+                                .args(&["/PID", &process.pid.to_string(), "/F"])
+                                .output()
+                        } else {
+                            Command::new("kill")
+                                .args(&["-9", &process.pid.to_string()])
+                                .output()
+                        }.expect("无法执行进程终止命令");
 
                         if output.status.success() {
                             println!("已停止进程 '{}' (PID: {})", process.name, process.pid);
@@ -43,11 +48,16 @@ pub fn stop_process(target: &str, show_list: bool) {
             if !found {
                 if let Some(process) = processes.iter().find(|p| p.name == target) {
                     if process.pid > 0 {
-                        // 在Windows上使用taskkill命令终止进程
-                        let output = Command::new("taskkill")
-                            .args(&["/PID", &process.pid.to_string(), "/F"])
-                            .output()
-                            .expect("无法执行taskkill命令");
+                        // 根据操作系统使用不同的命令终止进程
+                        let output = if cfg!(target_os = "windows") {
+                            Command::new("taskkill")
+                                .args(&["/PID", &process.pid.to_string(), "/F"])
+                                .output()
+                        } else {
+                            Command::new("kill")
+                                .args(&["-9", &process.pid.to_string()])
+                                .output()
+                        }.expect("无法执行进程终止命令");
 
                         if output.status.success() {
                             println!("已停止进程 '{}' (PID: {})", process.name, process.pid);
