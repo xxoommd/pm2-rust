@@ -5,7 +5,12 @@ use super::start::start_process;
 use super::stop::stop_process;
 use std::path::PathBuf;
 
-pub fn restart_process(config: Option<PathBuf>, namespace: Option<String>, target: Option<String>, args: Vec<String>) {
+pub fn restart_process(
+    config: Option<PathBuf>,
+    namespace: Option<String>,
+    target: Option<String>,
+    args: Vec<String>,
+) {
     let dump_config = DumpConfig::get_instance();
 
     // 如果指定了target，先检查是否是已存在的进程

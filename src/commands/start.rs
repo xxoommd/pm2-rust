@@ -32,7 +32,7 @@ pub fn start_process(
     // 如果指定了target，先检查是否是已存在的进程
     if let Some(ref target_str) = target {
         if let Ok(processes) = dump_config.list_processes() {
-            // 尝试将target解析为pmr_id
+            // 按pmr_id查找进程
             if let Ok(pmr_id) = target_str.parse::<u32>() {
                 if let Some(process) = processes.iter().find(|p| p.pmr_id == pmr_id) {
                     start_existing_process(process);
@@ -40,8 +40,8 @@ pub fn start_process(
                 }
             }
 
-            // 按名称和namespace查找进程
-            if let Some(process) = processes.iter().find(|p| p.name == *target_str && p.namespace == namespace) {
+            // 按name查找进程
+            if let Some(process) = processes.iter().find(|p| p.name == *target_str) {
                 start_existing_process(process);
                 return;
             }
@@ -66,8 +66,14 @@ pub fn start_process(
     });
 
     if let Ok(processes) = dump_config.list_processes() {
-        if let Some(_existing) = processes.iter().find(|p| p.name == process_name && p.namespace == namespace) {
-            println!("\n进程 '{}' 在命名空间 '{}' 中已经存在:", process_name, namespace);
+        if let Some(_existing) = processes
+            .iter()
+            .find(|p| p.name == process_name && p.namespace == namespace)
+        {
+            println!(
+                "\n进程 '{}' 在命名空间 '{}' 中已经存在:",
+                process_name, namespace
+            );
             list_processes(false);
             return;
         }
@@ -131,6 +137,7 @@ pub fn start_process(
                         args,
                     )
                     .expect("无法将进程添加到配置文件");
+                list_processes(false);
             }
             Err(e) => {
                 eprintln!("启动进程失败: {}", e);

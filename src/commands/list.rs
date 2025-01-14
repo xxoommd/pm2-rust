@@ -50,7 +50,8 @@ fn time_to_readable(seconds: u64) -> String {
     if minutes > 0 {
         result.push_str(&format!("{}m ", minutes));
     }
-    if secs > 0 && days == 0 && hours == 0 { // 只在没有天和小时的时候显示秒
+    if secs > 0 && days == 0 && hours == 0 {
+        // 只在没有天和小时的时候显示秒
         result.push_str(&format!("{}s", secs));
     }
 
