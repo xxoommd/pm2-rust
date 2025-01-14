@@ -58,6 +58,11 @@ fn restart_existing_process(process: &PmrProcessInfo) {
                 .update_process_status(process.pmr_id, pid, "running".to_string())
                 .expect("无法更新进程状态");
 
+            // 增加重启次数
+            dump_config
+                .increment_restarts(process.pmr_id)
+                .expect("无法更新重启次数");
+
             // 显示进程列表
             list_processes(false);
         }

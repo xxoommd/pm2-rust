@@ -12,6 +12,7 @@ pub struct PmrProcess {
     pub program: String,
     pub args: Vec<String>,
     pub status: String,
+    pub restarts: u32,
 }
 
 #[derive(Tabled)]
@@ -71,6 +72,7 @@ pub fn read_pmr_processes() -> Vec<PmrProcess> {
                 program: p.program,
                 args: p.args,
                 status: p.status,
+                restarts: p.restarts,
             })
             .collect(),
         Err(e) => {
@@ -125,7 +127,7 @@ pub fn list_processes(system: bool) {
                             version: "N/A".to_string(),
                             pid: p.pid.to_string(),
                             uptime: time_to_readable(run_time),
-                            restarts: "0".to_string(),
+                            restarts: p.restarts.to_string(),
                             status: "running".to_string(),
                             cpu: format!("{:.1}%", sys_proc.cpu_usage()),
                             mem: format!("{:.1} MB", sys_proc.memory() as f64 / 1024.0 / 1024.0),
@@ -143,7 +145,7 @@ pub fn list_processes(system: bool) {
                             version: "N/A".to_string(),
                             pid: p.pid.to_string(),
                             uptime: "0s".to_string(),
-                            restarts: "0".to_string(),
+                            restarts: p.restarts.to_string(),
                             status: "stopped".to_string(),
                             cpu: "0%".to_string(),
                             mem: "0 MB".to_string(),
@@ -159,7 +161,7 @@ pub fn list_processes(system: bool) {
                         version: "N/A".to_string(),
                         pid: "0".to_string(),
                         uptime: "0s".to_string(),
-                        restarts: "0".to_string(),
+                        restarts: p.restarts.to_string(),
                         status: "stopped".to_string(),
                         cpu: "0%".to_string(),
                         mem: "0 MB".to_string(),

@@ -29,7 +29,38 @@ impl DumpConfig {
         let dump_file = config_dir.join("dump.json");
         let data = if dump_file.exists() {
             let file_contents = fs::read_to_string(&dump_file)?;
-            serde_json::from_str(&file_contents)?
+            // 使用 serde_json::Value 先解析JSON
+            let json: serde_json::Value = serde_json::from_str(&file_contents)?;
+            
+            // 手动构建进程列表
+            let processes = if let Some(processes) = json.get("processes").and_then(|v| v.as_array()) {
+                processes
+                    .iter()
+                    .map(|p| PmrProcessInfo {
+                        pmr_id: p["pmr_id"].as_u64().unwrap_or(0) as u32,
+                        pid: p["pid"].as_u64().unwrap_or(0) as u32,
+                        name: p["name"].as_str().unwrap_or("").to_string(),
+                        namespace: p["namespace"].as_str().unwrap_or("").to_string(),
+                        status: p["status"].as_str().unwrap_or("").to_string(),
+                        program: p["program"].as_str().unwrap_or("").to_string(),
+                        workdir: p["workdir"].as_str().unwrap_or("").to_string(),
+                        args: p["args"]
+                            .as_array()
+                            .map(|a| {
+                                a.iter()
+                                    .filter_map(|v| v.as_str())
+                                    .map(String::from)
+                                    .collect()
+                            })
+                            .unwrap_or_default(),
+                        restarts: p["restarts"].as_u64().unwrap_or(0) as u32,
+                    })
+                    .collect()
+            } else {
+                Vec::new()
+            };
+
+            DumpData { processes }
         } else {
             let initial_data = DumpData {
                 processes: Vec::new(),
@@ -75,6 +106,7 @@ impl DumpConfig {
             workdir,
             program,
             args,
+            restarts: 0, // 初始化重启次数为0
         });
 
         self.save_data(&data)
@@ -96,6 +128,16 @@ impl DumpConfig {
         if let Some(process) = data.processes.iter_mut().find(|p| p.pmr_id == pmr_id) {
             process.pid = pid;
             process.status = status;
+            self.save_data(&data)
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn increment_restarts(&self, pmr_id: u32) -> io::Result<()> {
+        let mut data = self.data.lock().unwrap();
+        if let Some(process) = data.processes.iter_mut().find(|p| p.pmr_id == pmr_id) {
+            process.restarts = process.restarts.saturating_add(1);
             self.save_data(&data)
         } else {
             Ok(())

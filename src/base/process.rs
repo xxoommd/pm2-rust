@@ -10,4 +10,5 @@ pub struct PmrProcessInfo {
     pub program: String,
     pub workdir: String,
     pub args: Vec<String>,
+    pub restarts: u32, // 重启次数
 }
