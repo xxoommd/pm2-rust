@@ -2,6 +2,7 @@ use super::super::base::process::PmrProcessInfo;
 use super::super::config::dump::DumpConfig;
 use super::list::list_processes;
 use serde::{Deserialize, Serialize};
+use std::env;
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
@@ -21,6 +22,11 @@ pub fn start_process(
     args: Vec<String>,
 ) {
     let dump_config = DumpConfig::get_instance();
+    // 获取当前工作目录
+    let workdir = env::current_dir()
+        .unwrap_or_else(|_| PathBuf::from("."))
+        .to_string_lossy()
+        .into_owned();
 
     // 如果指定了target，先检查是否是已存在的进程
     if let Some(ref target_str) = target {
@@ -89,6 +95,7 @@ pub fn start_process(
                     .add_process(
                         process_name,
                         "default".to_string(),
+                        workdir,
                         config.program,
                         pid,
                         "running".to_string(),
@@ -116,6 +123,7 @@ pub fn start_process(
                     .add_process(
                         process_name,
                         "default".to_string(),
+                        workdir,
                         target_program,
                         pid,
                         "running".to_string(),
@@ -138,6 +146,15 @@ fn start_existing_process(process: &PmrProcessInfo) {
         return;
     }
 
+    // 保存当前工作目录
+    let original_dir = env::current_dir().expect("无法获取当前工作目录");
+
+    // 切换到进程的工作目录
+    if let Err(e) = env::set_current_dir(&process.workdir) {
+        eprintln!("无法切换到工作目录 {}: {}", process.workdir, e);
+        return;
+    }
+
     let mut cmd = Command::new(&process.program);
     cmd.args(&process.args)
         .stdout(Stdio::inherit())
@@ -154,11 +171,15 @@ fn start_existing_process(process: &PmrProcessInfo) {
                 .expect("无法更新进程状态");
 
             // 显示进程列表
-            println!("\n当前进程列表:");
             list_processes(false);
         }
         Err(e) => {
-            eprintln!("启动进程 '{}' 失败: {}", process.name, e);
+            eprintln!("启动进程失败: {}", e);
         }
+    }
+
+    // 恢复原始工作目录
+    if let Err(e) = env::set_current_dir(&original_dir) {
+        eprintln!("警告：无法恢复原始工作目录: {}", e);
     }
 }

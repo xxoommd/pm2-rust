@@ -57,6 +57,7 @@ impl DumpConfig {
         &self,
         name: String,
         namespace: String,
+        workdir: String,
         program: String,
         pid: u32,
         status: String,
@@ -71,6 +72,7 @@ impl DumpConfig {
             namespace,
             pid,
             status,
+            workdir,
             program,
             args,
         });

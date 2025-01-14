@@ -8,5 +8,6 @@ pub struct PmrProcessInfo {
     pub namespace: String,
     pub status: String,
     pub program: String,
+    pub workdir: String,
     pub args: Vec<String>,
 }
