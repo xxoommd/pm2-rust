@@ -33,7 +33,7 @@ pub fn restart_process(config: Option<PathBuf>, target: Option<String>, args: Ve
 
 fn restart_existing_process(process: &PmrProcessInfo) {
     println!("正在重启进程 '{}'...", process.name);
-    
+
     // 先停止进程
     stop_process(&process.pmr_id.to_string(), false);
 

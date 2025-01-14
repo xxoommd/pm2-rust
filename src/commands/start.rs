@@ -14,7 +14,12 @@ struct Config {
     args: Vec<String>,
 }
 
-pub fn start_process(config: Option<PathBuf>, name: Option<String>, target: Option<String>, args: Vec<String>) {
+pub fn start_process(
+    config: Option<PathBuf>,
+    name: Option<String>,
+    target: Option<String>,
+    args: Vec<String>,
+) {
     let dump_config = DumpConfig::get_instance();
 
     // 如果指定了target，先检查是否是已存在的进程
@@ -42,8 +47,10 @@ pub fn start_process(config: Option<PathBuf>, name: Option<String>, target: Opti
             if let Some(ref config_path) = config {
                 let mut file = File::open(config_path).expect("Failed to open config file");
                 let mut contents = String::new();
-                file.read_to_string(&mut contents).expect("Failed to read config file");
-                let config: Config = serde_json::from_str(&contents).expect("Failed to parse config file");
+                file.read_to_string(&mut contents)
+                    .expect("Failed to read config file");
+                let config: Config =
+                    serde_json::from_str(&contents).expect("Failed to parse config file");
                 config.name
             } else {
                 "unnamed".to_string()
