@@ -8,6 +8,7 @@ use commands::list::list_processes;
 use commands::restart::restart_process;
 use commands::start::start_process;
 use commands::stop::stop_process;
+use commands::tail_log;
 use config::dump::DumpConfig;
 
 fn config_init() -> std::io::Result<()> {
@@ -49,7 +50,12 @@ enum Commands {
     },
 
     /// List running processes
-    #[command(alias = "ls")]
+    #[command(
+        alias = "ls",
+        alias = "ps",
+        alias = "status",
+        about = "List running processes. Alias: ls, ps, status"
+    )]
     List {
         /// Show all system processes
         #[arg(long)]
@@ -57,7 +63,11 @@ enum Commands {
     },
 
     /// Delete a process
-    #[command(alias = "rm")]
+    #[command(
+        alias = "rm",
+        alias = "del",
+        about = "Delete a process. Alias: rm, del"
+    )]
     Delete {
         /// Process ID or name
         target: String,
@@ -86,6 +96,13 @@ enum Commands {
         #[arg(last = true)]
         args: Vec<String>,
     },
+
+    /// View logs of a process
+    #[command(alias = "logs")]
+    Log {
+        /// Process ID or name
+        target: String,
+    },
 }
 
 fn main() {
@@ -108,7 +125,13 @@ fn main() {
                 eprintln!("错误: 必须指定 --config 或 target");
                 return;
             }
-            start_process(config, name, namespace, target, args);
+            match start_process(config, name, namespace, target, args) {
+                Ok(_) => (),
+                Err(e) => {
+                    eprintln!("启动进程失败: {}", e);
+                    std::process::exit(1);
+                }
+            }
         }
         Commands::List { system } => {
             list_processes(system);
@@ -129,7 +152,19 @@ fn main() {
                 eprintln!("错误: 必须指定 --config 或 target");
                 return;
             }
-            restart_process(config, Some(namespace), target, args);
+            match restart_process(config, Some(namespace), target, args) {
+                Ok(_) => (),
+                Err(e) => {
+                    eprintln!("重启进程失败: {}", e);
+                    std::process::exit(1);
+                }
+            }
+        }
+        Commands::Log { target } => {
+            if let Err(e) = tail_log(target) {
+                eprintln!("查看日志失败: {}", e);
+                std::process::exit(1);
+            }
         }
     }
 }

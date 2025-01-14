@@ -1,6 +1,6 @@
 use crate::config::dump::DumpConfig;
 use serde::{Deserialize, Serialize};
-use sysinfo::{System, Users};
+use sysinfo::{ProcessExt, System, SystemExt, UserExt};
 use tabled::{Table, Tabled};
 
 #[derive(Serialize, Deserialize)]
@@ -83,8 +83,7 @@ pub fn read_pmr_processes() -> Vec<PmrProcess> {
 }
 
 pub fn list_processes(system: bool) {
-    let mut sys = System::new_all();
-    let users = Users::new_with_refreshed_list();
+    let mut sys = System::new();
     sys.refresh_all();
 
     if system {
@@ -93,7 +92,7 @@ pub fn list_processes(system: bool) {
             .iter()
             .map(|(&pid, process)| ProcessInfo {
                 id: "0".to_string(),
-                name: process.name().to_string_lossy().to_string(),
+                name: process.name().to_string(),
                 namespace: "default".to_string(),
                 version: "N/A".to_string(),
                 pid: pid.to_string(),
@@ -104,7 +103,7 @@ pub fn list_processes(system: bool) {
                 mem: format!("{:.1} MB", process.memory() as f64 / 1024.0 / 1024.0),
                 user: process
                     .user_id()
-                    .and_then(|uid| users.get_user_by_id(uid))
+                    .and_then(|uid| sys.get_user_by_id(uid))
                     .map_or("N/A".to_string(), |u| u.name().to_string()),
             })
             .collect();
@@ -133,7 +132,7 @@ pub fn list_processes(system: bool) {
                             mem: format!("{:.1} MB", sys_proc.memory() as f64 / 1024.0 / 1024.0),
                             user: sys_proc
                                 .user_id()
-                                .and_then(|uid| users.get_user_by_id(uid))
+                                .and_then(|uid| sys.get_user_by_id(uid))
                                 .map_or("N/A".to_string(), |u| u.name().to_string()),
                         }
                     } else {

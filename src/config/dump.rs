@@ -31,34 +31,35 @@ impl DumpConfig {
             let file_contents = fs::read_to_string(&dump_file)?;
             // 使用 serde_json::Value 先解析JSON
             let json: serde_json::Value = serde_json::from_str(&file_contents)?;
-            
+
             // 手动构建进程列表
-            let processes = if let Some(processes) = json.get("processes").and_then(|v| v.as_array()) {
-                processes
-                    .iter()
-                    .map(|p| PmrProcessInfo {
-                        pmr_id: p["pmr_id"].as_u64().unwrap_or(0) as u32,
-                        pid: p["pid"].as_u64().unwrap_or(0) as u32,
-                        name: p["name"].as_str().unwrap_or("").to_string(),
-                        namespace: p["namespace"].as_str().unwrap_or("").to_string(),
-                        status: p["status"].as_str().unwrap_or("").to_string(),
-                        program: p["program"].as_str().unwrap_or("").to_string(),
-                        workdir: p["workdir"].as_str().unwrap_or("").to_string(),
-                        args: p["args"]
-                            .as_array()
-                            .map(|a| {
-                                a.iter()
-                                    .filter_map(|v| v.as_str())
-                                    .map(String::from)
-                                    .collect()
-                            })
-                            .unwrap_or_default(),
-                        restarts: p["restarts"].as_u64().unwrap_or(0) as u32,
-                    })
-                    .collect()
-            } else {
-                Vec::new()
-            };
+            let processes =
+                if let Some(processes) = json.get("processes").and_then(|v| v.as_array()) {
+                    processes
+                        .iter()
+                        .map(|p| PmrProcessInfo {
+                            pmr_id: p["pmr_id"].as_u64().unwrap_or(0) as u32,
+                            pid: p["pid"].as_u64().unwrap_or(0) as u32,
+                            name: p["name"].as_str().unwrap_or("").to_string(),
+                            namespace: p["namespace"].as_str().unwrap_or("").to_string(),
+                            status: p["status"].as_str().unwrap_or("").to_string(),
+                            program: p["program"].as_str().unwrap_or("").to_string(),
+                            workdir: p["workdir"].as_str().unwrap_or("").to_string(),
+                            args: p["args"]
+                                .as_array()
+                                .map(|a| {
+                                    a.iter()
+                                        .filter_map(|v| v.as_str())
+                                        .map(String::from)
+                                        .collect()
+                                })
+                                .unwrap_or_default(),
+                            restarts: p["restarts"].as_u64().unwrap_or(0) as u32,
+                        })
+                        .collect()
+                } else {
+                    Vec::new()
+                };
 
             DumpData { processes }
         } else {
@@ -93,7 +94,7 @@ impl DumpConfig {
         pid: u32,
         status: String,
         args: Vec<String>,
-    ) -> io::Result<()> {
+    ) -> io::Result<u32> {
         let mut data = self.data.lock().unwrap();
         let new_id = data.processes.iter().map(|p| p.pmr_id).max().unwrap_or(0) + 1;
 
@@ -109,7 +110,8 @@ impl DumpConfig {
             restarts: 0, // 初始化重启次数为0
         });
 
-        self.save_data(&data)
+        self.save_data(&data)?;
+        Ok(new_id)
     }
 
     pub fn delete_process(&self, id: u32) -> io::Result<()> {
