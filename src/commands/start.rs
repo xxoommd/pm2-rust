@@ -18,6 +18,7 @@ struct Config {
 pub fn start_process(
     config: Option<PathBuf>,
     name: Option<String>,
+    namespace: String,
     target: Option<String>,
     args: Vec<String>,
 ) {
@@ -39,15 +40,15 @@ pub fn start_process(
                 }
             }
 
-            // 按名称查找进程
-            if let Some(process) = processes.iter().find(|p| p.name == *target_str) {
+            // 按名称和namespace查找进程
+            if let Some(process) = processes.iter().find(|p| p.name == *target_str && p.namespace == namespace) {
                 start_existing_process(process);
                 return;
             }
         }
     }
 
-    // 检查是否已存在同名进程
+    // 检查是否已存在同名进程在同一namespace中
     let process_name = name.clone().unwrap_or_else(|| {
         target.clone().unwrap_or_else(|| {
             if let Some(ref config_path) = config {
@@ -65,8 +66,8 @@ pub fn start_process(
     });
 
     if let Ok(processes) = dump_config.list_processes() {
-        if let Some(_existing) = processes.iter().find(|p| p.name == process_name) {
-            println!("\n进程 '{}' 已经存在:", process_name);
+        if let Some(_existing) = processes.iter().find(|p| p.name == process_name && p.namespace == namespace) {
+            println!("\n进程 '{}' 在命名空间 '{}' 中已经存在:", process_name, namespace);
             list_processes(false);
             return;
         }
@@ -94,7 +95,7 @@ pub fn start_process(
                 dump_config
                     .add_process(
                         process_name,
-                        "default".to_string(),
+                        namespace,
                         workdir,
                         config.program,
                         pid,
@@ -122,7 +123,7 @@ pub fn start_process(
                 dump_config
                     .add_process(
                         process_name,
-                        "default".to_string(),
+                        namespace,
                         workdir,
                         target_program,
                         pid,

@@ -36,6 +36,10 @@ enum Commands {
         #[arg(short, long)]
         name: Option<String>,
 
+        /// Namespace for the process
+        #[arg(long, default_value = "default")]
+        namespace: String,
+
         /// Target (can be pmr_id, name, or program to run)
         target: Option<String>,
 
@@ -71,6 +75,10 @@ enum Commands {
         #[arg(short, long)]
         config: Option<PathBuf>,
 
+        /// Namespace for the process
+        #[arg(long, default_value = "default")]
+        namespace: String,
+
         /// Target (can be pmr_id, name, or program to run)
         target: Option<String>,
 
@@ -92,6 +100,7 @@ fn main() {
         Commands::Start {
             config,
             name,
+            namespace,
             target,
             args,
         } => {
@@ -99,7 +108,7 @@ fn main() {
                 eprintln!("错误: 必须指定 --config 或 target");
                 return;
             }
-            start_process(config.clone(), name.clone(), target.clone(), args);
+            start_process(config, name, namespace, target, args);
         }
         Commands::List { system } => {
             list_processes(system);
@@ -112,6 +121,7 @@ fn main() {
         }
         Commands::Restart {
             config,
+            namespace,
             target,
             args,
         } => {
@@ -119,7 +129,7 @@ fn main() {
                 eprintln!("错误: 必须指定 --config 或 target");
                 return;
             }
-            restart_process(config.clone(), target.clone(), args);
+            restart_process(config, Some(namespace), target, args);
         }
     }
 }
