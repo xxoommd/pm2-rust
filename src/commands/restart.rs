@@ -1,6 +1,6 @@
 use super::super::base::process::PmrProcessInfo;
 use super::super::config::dump::DumpConfig;
-use super::super::config::log_path;
+use super::super::config::log;
 use super::list::list_processes;
 use super::start::start_process;
 use super::stop::stop_process;
@@ -48,7 +48,7 @@ fn restart_existing_process(process: &PmrProcessInfo) -> io::Result<()> {
     stop_process(&process.pmr_id.to_string(), false);
 
     // 获取日志文件路径
-    let log_path = log_path::get_log_path(process.pmr_id)?;
+    let log_path = log::get_log_path(process.pmr_id)?;
 
     // 打开日志文件（追加模式）
     let log_file = OpenOptions::new()

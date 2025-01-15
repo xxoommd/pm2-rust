@@ -1,5 +1,5 @@
 use super::super::config::dump::DumpConfig;
-use super::super::config::log_path;
+use super::super::config::log;
 use ctrlc;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Seek, SeekFrom};
@@ -38,7 +38,7 @@ pub fn tail_log(target: String) -> io::Result<()> {
     };
 
     // 获取日志文件路径
-    let log_path = match log_path::get_log_path(pmr_id) {
+    let log_path = match log::get_log_path(pmr_id) {
         Ok(path) => path,
         Err(e) => {
             eprintln!("无法获取日志文件路径: {}", e);

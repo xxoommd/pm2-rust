@@ -9,5 +9,5 @@ pmr list/ls
 pmr stop [id;name]
 pmr stop [id;name]
 pmr restart [id;name]
-pmr delete/rm [id:name]
+pmr delete/rm [id;name]
 ```
