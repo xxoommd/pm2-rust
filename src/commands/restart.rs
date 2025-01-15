@@ -41,7 +41,6 @@ pub fn restart_process(
     Ok(())
 }
 
-
 fn restart_existing_process(process: &PmrProcessInfo) -> io::Result<()> {
     println!("正在重启进程 '{}'...", process.name);
 

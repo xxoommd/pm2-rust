@@ -50,8 +50,6 @@ pub fn stop_process(target: &str, show_list: bool) {
                         }
                         .expect("无法执行进程终止命令");
 
-                        println!("--- test output: {}", output.status);
-
                         if output.status.success() {
                             println!("已停止进程 '{}' (PID: {})", process.name, process.pid);
                             dump_config

@@ -1,6 +1,6 @@
 use super::super::base::process::PmrProcessInfo;
-use super::super::config::log_path;
 use super::super::config::dump::DumpConfig;
+use super::super::config::log_path;
 use super::list::list_processes;
 use super::stop::stop_process;
 use serde::{Deserialize, Serialize};

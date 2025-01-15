@@ -1,11 +1,18 @@
 use super::super::config::dump::DumpConfig;
 use super::super::config::log_path;
+use ctrlc;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Seek, SeekFrom};
 use std::thread;
 use std::time::Duration;
 
 pub fn tail_log(target: String) -> io::Result<()> {
+    ctrlc::set_handler(move || {
+        println!("\n退出日志查看");
+        std::process::exit(0);
+    })
+    .expect("无法设置Ctrl+C处理器");
+
     let dump_config = DumpConfig::get_instance();
 
     // 解析目标ID

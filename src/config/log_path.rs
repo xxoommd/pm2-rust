@@ -1,7 +1,7 @@
+use dirs;
 use std::fs;
 use std::io;
 use std::path::PathBuf;
-use dirs;
 
 pub fn get_log_path(pmr_id: u32) -> io::Result<PathBuf> {
     let home_dir = dirs::home_dir()
